@@ -5,6 +5,9 @@
 //  Input CSV or Tab-delimited data and this will parse it into a Data Grid Javascript object
 //
 //  CSV Parsing Function from Ben Nadel, http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
+//
+//
+// Updated by: Rob Emmerson on 27/08/2014 to support the output from iTunes Connect
 
 
 var isDecimal_re     = /^\s*(\+|-)?((\d+([,\.]\d+)?)|([,\.]\d+))\s*$/;
@@ -62,15 +65,10 @@ var CSVParser = {
     input = input.replace(RE, "");
     RE = new RegExp(rowDelimiter + "+$", "gi");
     input = input.replace(RE, "");
+      
+    // remove special characters from the input
+    input = input.replace(/[^\w\s\+\&\,]/gi, '');
 
-    // var arr = input.split(rowDelimiter);
-    //
-    // for (var i=0; i < arr.length; i++) {
-    //   dataArray.push(arr[i].split(columnDelimiter));
-    // };
-
-
-    // dataArray = jQuery.csv(columnDelimiter)(input);
     dataArray = this.CSVToArray(input, columnDelimiter);
 
     //escape out any tabs or returns or new lines
@@ -79,6 +77,7 @@ var CSVParser = {
         dataArray[i][j] = dataArray[i][j].replace("\t", "\\t");
         dataArray[i][j] = dataArray[i][j].replace("\n", "\\n");
         dataArray[i][j] = dataArray[i][j].replace("\r", "\\r");
+        dataArray[i][j] = dataArray[i][j].trim();
       };
     };
 
@@ -125,33 +124,7 @@ var CSVParser = {
     var numRowsToTest = dataArray.length;
     var threshold = 0.9;
     for (var i=0; i < headerNames.length; i++) {
-      var numFloats = 0;
-      var numInts = 0;
-      for (var r=0; r < numRowsToTest; r++) {
-        if (dataArray[r]) {
-          //replace comma with dot if comma is decimal separator
-          if(decimalSign='comma' && isDecimal_re.test(dataArray[r][i])){
-            dataArray[r][i] = dataArray[r][i].replace(",", ".");
-          }
-          if (CSVParser.isNumber(dataArray[r][i])) {
-            numInts++
-            if (String(dataArray[r][i]).indexOf(".") > 0) {
-              numFloats++
-            }
-          };
-        };
-
-      };
-
-      if ((numInts / numRowsToTest) > threshold){
-        if (numFloats > 0) {
-          headerTypes[i] = "float"
-        } else {
-          headerTypes[i] = "int"
-        }
-      } else {
-        headerTypes[i] = "string"
-      }
+        headerTypes[i] = "string";
     }
 
 
